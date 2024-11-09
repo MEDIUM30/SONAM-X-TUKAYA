@@ -1,0 +1,266 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>RPG - Batalha Sonam X Yoria</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background-color: #f0f0f0;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            margin: 0;
+        }
+
+        #game-container {
+            background-color: white;
+            border-radius: 10px;
+            padding: 20px;
+            box-shadow: 0 0 15px rgba(0, 0, 0, 0.1);
+            text-align: center;
+            width: 350px;
+        }
+
+        .button {
+            background-color: #4CAF50;
+            border: none;
+            color: white;
+            padding: 10px 20px;
+            font-size: 16px;
+            cursor: pointer;
+            border-radius: 5px;
+            margin: 5px;
+            transition: background-color 0.3s ease;
+        }
+
+        .button:hover {
+            background-color: #45a049;
+        }
+
+        #status {
+            margin-top: 20px;
+            font-size: 18px;
+        }
+
+        .character, .enemy {
+            width: 100px;
+            height: 100px;
+            margin: 20px;
+            background-size: cover;
+            display: inline-block;
+            position: relative;
+        }
+
+        #player {
+            background-image: url('Screenshot_20241012-134701_ibisPaint_X.jpg');
+        }
+
+        #enemy {
+            background-image: url('262_Sem_Titulo_20241027151155.png');
+        }
+
+        .attack-animation {
+            animation: attack 1s forwards;
+        }
+
+        @keyframes attack {
+            0% {
+                transform: scale(1);
+                opacity: 1;
+            }
+            50% {
+                transform: scale(1.5);
+                opacity: 0.5;
+            }
+            100% {
+                transform: scale(1);
+                opacity: 1;
+            }
+        }
+
+        .wind-effect {
+            animation: wind 1s forwards;
+            position: absolute;
+            top: 0;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 100%;
+            height: 100%;
+            background: rgba(173, 216, 230, 0.5); /* Azul claro representando vento */
+            opacity: 0;
+        }
+
+        @keyframes wind {
+            0% {
+                opacity: 0;
+                transform: translateX(-50%) scale(1);
+            }
+            50% {
+                opacity: 1;
+                transform: translateX(-50%) scale(1.5);
+            }
+            100% {
+                opacity: 0;
+                transform: translateX(-50%) scale(1);
+            }
+        }
+
+        .water-effect {
+            animation: water 1s forwards;
+            position: absolute;
+            top: 0;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 191, 255, 0.5); /* Azul representando água */
+            opacity: 0;
+        }
+
+        @keyframes water {
+            0% {
+                opacity: 0;
+                transform: translateX(-50%) scale(1);
+            }
+            50% {
+                opacity: 1;
+                transform: translateX(-50%) scale(1.5);
+            }
+            100% {
+                opacity: 0;
+                transform: translateX(-50%) scale(1);
+            }
+        }
+
+        .damage {
+            color: red;
+            font-weight: bold;
+        }
+
+        #round-info {
+            font-size: 18px;
+            margin-top: 10px;
+        }
+
+        .hidden {
+            display: none;
+        }
+    </style>
+</head>
+<body>
+    <div id="game-container">
+        <h1>RPG - Batalha</h1>
+        <div id="status">
+            <p>Vida do Sonam: <span id="player-hp">100</span></p>
+            <p>Vida do Tukaya: <span id="enemy-hp">100</span></p>
+        </div>
+        <div id="characters">
+            <div id="player" class="character"></div>
+            <div id="enemy" class="character"></div>
+        </div>
+        <button class="button" onclick="attackEnemy()">Atacar</button>
+        <button class="button" onclick="defend()">Defender</button>
+        <button class="button" onclick="heal()">Curar</button>
+        <button class="button" onclick="startGame()">Recomeçar Jogo</button>
+        <p id="message"></p>
+        <p id="round-info">Round: <span id="round">1</span></p>
+    </div>
+
+    <script>
+        let playerHp = 100;
+        let enemyHp = 100;
+        let round = 1;
+
+        function startGame() {
+            playerHp = 100;
+            enemyHp = 100;
+            round = 1;
+            document.getElementById('player-hp').innerText = playerHp;
+            document.getElementById('enemy-hp').innerText = enemyHp;
+            document.getElementById('round').innerText = round;
+            document.getElementById('message').innerText = '';
+            document.getElementById('round-info').classList.remove('hidden');
+            resetAnimations();
+        }
+
+        function attackEnemy() {
+            let damage = Math.floor(Math.random() * 20) + 10; // Dano entre 10 e 30
+            enemyHp -= damage;
+            document.getElementById('enemy-hp').innerText = enemyHp;
+            document.getElementById('message').innerText = `Você atacou o Tukaya e causou ${damage} de dano!`;
+
+            // Animação de vento ao atacar
+            let windEffect = document.createElement('div');
+            windEffect.classList.add('wind-effect');
+            document.getElementById('player').appendChild(windEffect);
+
+            setTimeout(() => windEffect.remove(), 1000);
+
+            if (enemyHp <= 0) {
+                document.getElementById('message').innerText = 'Você derrotou Tukaya!';
+                document.getElementById('round-info').classList.add('hidden');
+            } else {
+                enemyTurn();
+            }
+        }
+
+        function defend() {
+            let block = Math.floor(Math.random() * 10) + 5; // Defesa entre 5 e 15
+            document.getElementById('message').innerText = `Você se defendeu e bloqueou ${block} de dano!`;
+
+            enemyTurn();
+        }
+
+        function heal() {
+            let healAmount = Math.floor(Math.random() * 15) + 10; // Cura entre 10 e 25
+            playerHp += healAmount;
+            document.getElementById('player-hp').innerText = playerHp;
+            document.getElementById('message').innerText = `Você curou ${healAmount} de vida!`;
+
+            enemyTurn();
+        }
+
+        function enemyTurn() {
+            let enemyAction = Math.random();
+
+            setTimeout(() => {
+                if (enemyAction < 0.5) {
+                    let enemyDamage = Math.floor(Math.random() * 15) + 10; // Dano entre 10 e 25
+                    playerHp -= enemyDamage;
+                    document.getElementById('player-hp').innerText = playerHp;
+                    document.getElementById('message').innerText += `\nO Tukaya atacou e causou ${enemyDamage} de dano!`;
+
+                    // Animação de água ao atacar
+                    let waterEffect = document.createElement('div');
+                    waterEffect.classList.add('water-effect');
+                    document.getElementById('enemy').appendChild(waterEffect);
+
+                    setTimeout(() => waterEffect.remove(), 1000);
+                } else if (enemyAction < 0.8) {
+                    let enemyHeal = Math.floor(Math.random() * 10) + 5; // Cura entre 5 e 15
+                    enemyHp += enemyHeal;
+                    document.getElementById('enemy-hp').innerText = enemyHp;
+                    document.getElementById('message').innerText += `\nO Tukaya curou ${enemyHeal} de vida!`;
+                } else {
+                    document.getElementById('message').innerText += `\nO Tukaya se defendeu!`;
+                }
+
+                if (playerHp <= 0) {
+                    document.getElementById('message').innerText = 'Você foi derrotado!';
+                    document.getElementById('round-info').classList.add('hidden');
+                } else {
+                    round++;
+                    document.getElementById('round').innerText = round;
+                }
+            }, 1000);
+        }
+
+        function resetAnimations() {
+            // Limpa as animações ao reiniciar
+        }
+    </script>
+</body>
+</html>
